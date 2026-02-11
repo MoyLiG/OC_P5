@@ -1,0 +1,56 @@
+name: Run Tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:latest
+        ports:
+          - 27017:27017
+        env:
+          MONGO_INITDB_ROOT_USERNAME: root
+          MONGO_INITDB_ROOT_PASSWORD: example
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ping: 1})' --quiet"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+
+      - name: Run unit tests
+        env:
+          DB_NAME: P5_test
+        run: |
+          python -m pytest tests/test_transfert_csv_mongodb.py -v
+          python -m pytest tests/test_integrite_donnees.py -v
+          python -m pytest tests/test_optimiser_collection.py -v
+
+      - name: Run integration tests
+        env:
+          MONGO_URI: mongodb://root:example@localhost:27017/
+          DB_NAME: P5_test
+          COLLECTION_NAME: dataset_donnees_medicales
+        run: |
+          python scripts/transfert_csv_mongodb.py
+          python scripts/optimiser_collection.py
+          python scripts/test_integrite_donnees.py
