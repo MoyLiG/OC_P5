@@ -1,0 +1,47 @@
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    volumes:
+      - mongodb_data:/data/db
+      - ./data:/data
+    ports:
+      - "27017:27017"
+    networks:
+      - mongo_network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  migration:
+    image: python:3.9-slim
+    container_name: migration
+    volumes:
+      - ./data:/data
+      - ./scripts:/scripts
+      - ./requirements.txt:/requirements.txt
+    working_dir: /scripts
+    command: >
+      bash -c "pip install --no-cache-dir -r /requirements.txt &&
+      python transfert_csv_mongodb.py || echo 'Erreur dans transfert_csv_mongodb.py' &&
+      python optimiser_collection.py || echo 'Erreur dans optimiser_collection.py' &&
+      python test_integrite_donnees.py || echo 'Erreur dans test_integrite_donnees.py'"
+      
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - mongo_network
+
+volumes:
+  mongodb_data:
+
+networks:
+  mongo_network:
+    driver: bridge

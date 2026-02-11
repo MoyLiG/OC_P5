@@ -1,0 +1,16 @@
+Accéder au conteneur MongoDB :
+
+docker exec -it mongodb bash
+------------------------------------------
+
+Utiliser mongosh pour vérifier les données :
+
+mongosh -u root -p example
+------------------------------------------
+
+Puis, dans le shell MongoDB :
+
+use P5
+show collections
+db.dataset_donnees_medicales.countDocuments()
+db.dataset_donnees_medicales.find().limit(5)

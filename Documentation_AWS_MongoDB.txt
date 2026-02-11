@@ -1,0 +1,178 @@
+================================================================================
+Documentation AWS : Passage au Cloud pour une Base de Données MongoDB
+================================================================================
+
+Table des Matières
+1. Différences entre un Ordinateur et un Serveur
+2. Qu'est-ce que le Stockage dans le Cloud ?
+3. Méthode pour Créer un Compte AWS
+4. Tarifications d’AWS
+5. Amazon RDS pour MongoDB et Amazon DocumentDB
+6. Déploiement d’une Instance MongoDB dans un Conteneur Docker sur Amazon ECS
+7. Configuration des Sauvegardes et Surveillance des Bases de Données sur AWS
+8. Résumé des Avantages du Passage au Cloud avec AWS
+9. Recommandations pour le Client
+10. Ressources Utiles
+
+================================================================================
+1. Différences entre un Ordinateur et un Serveur
+================================================================================
+
+Ordinateur Personnel
+- Utilisation : Conçu pour un usage individuel (bureautique, jeux, navigation, etc.).
+- Ressources : Limitées (CPU, RAM, stockage) adaptées à des tâches ponctuelles.
+- Maintenance : Géré par l'utilisateur (mises à jour, sauvegardes, sécurité).
+- Disponibilité : Non conçu pour être disponible 24/7.
+- Évolutivité : Difficile à mettre à niveau sans acheter de nouveaux composants.
+
+Serveur
+- Utilisation : Conçu pour héberger des applications, des bases de données ou des services accessibles par plusieurs utilisateurs.
+- Ressources : Optimisées pour des charges de travail continues et intensives.
+- Maintenance : Souvent géré par des administrateurs système pour assurer la disponibilité et la sécurité.
+- Disponibilité : Conçu pour fonctionner 24/7 avec une haute disponibilité.
+- Évolutivité : Peut être mis à niveau ou étendu pour répondre à la demande.
+
+Serveur dans le Cloud (AWS)
+- Flexibilité : Ressources ajustables à la demande (scalabilité horizontale et verticale).
+- Coût : Pay-as-you-go (paiement à l'usage), pas d'investissement initial en matériel.
+- Disponibilité : Infrastructure redondante et répartie pour une haute disponibilité.
+- Sécurité : Sécurité gérée par le fournisseur cloud (chiffrement, pare-feu, etc.).
+- Maintenance : Mises à jour et maintenance matérielle gérées par le fournisseur.
+
+================================================================================
+2. Qu'est-ce que le Stockage dans le Cloud ?
+================================================================================
+
+Le stockage dans le cloud permet de stocker des données sur des serveurs distants accessibles via Internet.
+Avantages :
+- Accessibilité : Accès aux données depuis n'importe où et à tout moment.
+- Évolutivité : Augmentation ou réduction de la capacité de stockage selon les besoins.
+- Fiabilité : Réplication des données pour éviter les pertes en cas de panne.
+- Sécurité : Chiffrement des données, contrôle d'accès granulaire.
+- Coût : Réduction des coûts liés à l'achat et à la maintenance de matériel physique.
+
+Pour en savoir plus : https://aws.amazon.com/fr/what-is/cloud-storage/
+
+================================================================================
+3. Méthode pour Créer un Compte AWS
+================================================================================
+
+Étapes pour créer un compte AWS :
+1. Inscription : Rendez-vous sur https://portal.aws.amazon.com/billing/signup et suivez les instructions.
+2. Informations personnelles : Fournissez votre adresse e-mail, un mot de passe et les informations de paiement.
+3. Vérification : Validez votre identité par téléphone ou e-mail.
+4. Choix du plan : Sélectionnez le plan gratuit (AWS Free Tier) pour commencer.
+5. Connexion : Connectez-vous à la console AWS avec vos identifiants.
+
+Bonnes Pratiques :
+- Sécurité : Activez la double authentification (MFA).
+- Gestion des coûts : Configurez des alertes de facturation pour éviter les dépassements.
+- Organisation : Utilisez AWS Organizations pour gérer plusieurs comptes.
+
+Guide de création de compte AWS : https://aws.amazon.com/fr/premiumsupport/knowledge-center/create-and-activate-aws-account/
+
+================================================================================
+4. Tarifications d’AWS
+================================================================================
+
+AWS propose un modèle de tarification flexible :
+- Free Tier : Offre gratuite pour les nouveaux clients (12 mois), incluant des ressources limitées.
+- À la demande : Paiement pour les ressources utilisées (par heure ou par seconde).
+- Réservations : Réductions pour les engagements à long terme (instances réservées).
+- Spot Instances : Instances à prix réduit pour des tâches flexibles.
+
+Calculateur de prix AWS : https://calculator.aws/
+
+================================================================================
+5. Amazon RDS pour MongoDB et Amazon DocumentDB
+================================================================================
+
+Amazon RDS (Relational Database Service)
+- Description : Service géré pour les bases de données relationnelles (MySQL, PostgreSQL, etc.).
+- Limite : Ne prend pas en charge MongoDB nativement (MongoDB est une base de données NoSQL).
+
+Amazon DocumentDB (avec compatibilité MongoDB)
+- Description : Service de base de données documentaire géré, compatible avec MongoDB.
+- Avantages :
+  - Compatible avec les outils et drivers MongoDB existants.
+  - Évolutivité automatique et haute disponibilité intégrée.
+  - Sauvegardes automatiques et restauration à un instant donné.
+- Cas d'utilisation : Applications nécessitant une base de données NoSQL scalable et gérée.
+
+Documentation Amazon DocumentDB : https://aws.amazon.com/fr/documentdb/
+
+================================================================================
+6. Déploiement d’une Instance MongoDB dans un Conteneur Docker sur Amazon ECS
+================================================================================
+
+Amazon ECS (Elastic Container Service)
+- Description : Service de gestion de conteneurs Docker sur AWS.
+- Avantages :
+  - Intégration native avec Docker.
+  - Orchestration simplifiée des conteneurs.
+  - Scalabilité et gestion des charges de travail.
+
+Étapes pour Déployer MongoDB sur ECS :
+1. Créer une image Docker : Utilisez un Dockerfile pour créer une image avec MongoDB.
+   FROM mongo:latest
+   COPY healthcare_dataset.csv /data/
+   CMD ["mongod", "--bind_ip_all"]
+
+2. Pousser l'image vers Amazon ECR (Elastic Container Registry) :
+   aws ecr create-repository --repository-name mongodb-repo
+   docker tag mongodb-image:latest <account-id>.dkr.ecr.<region>.amazonaws.com/mongodb-repo:latest
+   docker push <account-id>.dkr.ecr.<region>.amazonaws.com/mongodb-repo:latest
+
+3. Créer une tâche ECS : Définissez une tâche ECS pour exécuter le conteneur MongoDB.
+4. Configurer un service ECS : Déployez la tâche dans un cluster ECS.
+5. Accéder à MongoDB : Configurez les règles de sécurité pour autoriser l'accès au conteneur.
+
+Documentation Amazon ECS : https://docs.aws.amazon.com/AmazonECS/latest/developerguide/Welcome.html
+
+================================================================================
+7. Configuration des Sauvegardes et Surveillance des Bases de Données sur AWS
+================================================================================
+
+Sauvegardes
+- Amazon DocumentDB : Sauvegardes automatiques avec possibilité de restauration à un instant donné.
+- Snapshots : Créez des snapshots manuels pour une sauvegarde supplémentaire.
+- Exportation : Exportez les données vers Amazon S3 pour une conservation à long terme.
+
+Surveillance
+- Amazon CloudWatch : Outil de surveillance pour les métriques (CPU, mémoire, requêtes, etc.).
+- Alertes : Configurez des alarmes pour être notifié en cas de problème.
+- Logs : Centralisez les logs avec AWS CloudTrail pour un audit complet.
+
+Documentation sur la surveillance avec CloudWatch : https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/WhatIsCloudWatch.html
+
+================================================================================
+8. Résumé des Avantages du Passage au Cloud avec AWS
+================================================================================
+
+| Critère               | Sur Site                          | AWS Cloud                                  |
+|-----------------------|-----------------------------------|--------------------------------------------|
+| Coût initial          | Élevé (achat de matériel)         | Faible (pay-as-you-go)                     |
+| Évolutivité           | Limitée                           | Illimitée                                  |
+| Disponibilité         | Dépend de l'infrastructure locale| 99.99% de disponibilité                    |
+| Maintenance           | Gérée en interne                  | Gérée par AWS                              |
+| Sécurité              | Responsabilité interne            | Sécurité intégrée et certifications        |
+| Sauvegardes           | Manuel                            | Automatique et géo-répliquée               |
+| Accès                 | Local                             | Depuis n'importe où                       |
+
+================================================================================
+9. Recommandations pour le Client
+================================================================================
+
+1. Commencez par le Free Tier : Testez les services AWS sans engagement financier.
+2. Utilisez Amazon DocumentDB : Pour une compatibilité totale avec MongoDB et une gestion simplifiée.
+3. Automatisez les sauvegardes : Configurez des sauvegardes automatiques pour éviter les pertes de données.
+4. Surveillez les coûts : Utilisez AWS Cost Explorer pour suivre et optimiser les dépenses.
+5. Formez vos équipes : Profitez des ressources de formation AWS pour monter en compétence.
+
+================================================================================
+10. Ressources Utiles
+================================================================================
+
+- Documentation AWS : https://docs.aws.amazon.com/
+- AWS Free Tier : https://aws.amazon.com/fr/free/
+- Tutoriel : Déployer une application conteneurisée sur ECS : https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ECS_GetStarted.html
