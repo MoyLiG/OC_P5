@@ -40,7 +40,7 @@ jobs:
       - name: Run unit tests
         run: |
           python -m pytest tests/test_transfert_csv_mongodb_test_docker.py -v
-          python -m pytest tests/test_integrite_donnees_test_docker.py -v
+          python -m pytest tests/test_test_integrite_donnees_test_docker.py -v
           python -m pytest tests/test_optimiser_collection_test_docker.py -v
 
       - name: Run integration tests
