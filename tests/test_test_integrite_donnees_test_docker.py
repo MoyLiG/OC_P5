@@ -1,18 +1,18 @@
 """
-Test unitaire pour tester_integrite_donnees_P5_test
+Test unitaire pour tester_integrite_donnees_test_docker
 À exécuter depuis : P5/ (racine du projet)
-Commande : pytest tests/test_test_integrite_donnees.py -v
+Commande : pytest tests/test_test_integrite_donnees_test_docker.py -v
 """
 import pytest
 import pandas as pd
 from unittest.mock import patch, MagicMock
-from scripts.local_test_integrite_donnees_P5_test import tester_integrite_donnees_P5_test
+from scripts.test_integrite_donnees_test_docker import tester_integrite_donnees_test_docker
 
-@patch('scripts.local_test_integrite_donnees_P5_test.MongoClient')
-@patch('scripts.local_test_integrite_donnees_P5_test.pd.read_csv')
-def test_integrite_donnees(mock_read_csv, mock_mongo_client):
+@patch('scripts.test_integrite_donnees_test_docker.MongoClient')
+@patch('scripts.test_integrite_donnees_test_docker.pd.read_csv')
+def test_integrite_donnees_test_docker(mock_read_csv, mock_mongo_client):
     """
-    Test de la fonction tester_integrite_donnees_P5_test.
+    Test de la fonction tester_integrite_donnees_test_docker.
     Vérifie que la fonction compare correctement les données CSV et MongoDB.
     """
     # Configuration des données mockées
@@ -43,7 +43,7 @@ def test_integrite_donnees(mock_read_csv, mock_mongo_client):
     # Exécution de la fonction
     # Note : La fonction devrait retourner True/False ou lever une exception
     # selon que les données sont intègres ou non
-    result = tester_integrite_donnees_P5_test(csv_file_path="data/healthcare_dataset.csv")
+    result = tester_integrite_donnees_test_docker(csv_file_path="data/healthcare_dataset.csv")
     
     # Vérifications de base
     # 1. Le CSV a été lu
