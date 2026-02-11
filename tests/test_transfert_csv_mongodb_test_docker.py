@@ -1,18 +1,18 @@
 """
-Test unitaire pour transfert_csv_mongodb_P5_test
+Test unitaire pour transfert_csv_mongodb_test_docker
 À exécuter depuis : P5/ (racine du projet)
-Commande : pytest tests/test_transfert_csv_mongodb.py -v
+Commande : pytest tests/test_transfert_csv_mongodb_test_docker.py -v
 """
 import pytest
 import pandas as pd
 from unittest.mock import patch, MagicMock
-from scripts.local_transfert_csv_mongodb_P5_test import transfert_csv_mongodb_P5_test
+from scripts.transfert_csv_mongodb_test_docker import transfert_csv_mongodb_test_docker
 
-@patch('scripts.local_transfert_csv_mongodb_P5_test.MongoClient')
-@patch('scripts.local_transfert_csv_mongodb_P5_test.pd.read_csv')
+@patch('scripts.transfert_csv_mongodb_test_docker.MongoClient')
+@patch('scripts.transfert_csv_mongodb_test_docker.pd.read_csv')
 def test_transfert_csv(mock_read_csv, mock_mongo_client):
     """
-    Test de la fonction transfert_csv_mongodb_P5_test.
+    Test de la fonction transfert_csv_mongodb_test_docker.
     Vérifie que les données CSV sont correctement transférées vers MongoDB.
     """
     # Mock des données CSV
@@ -37,7 +37,7 @@ def test_transfert_csv(mock_read_csv, mock_mongo_client):
     mock_collection.insert_many.return_value = mock_result
     
     # Exécution de la fonction
-    transfert_csv_mongodb_P5_test(csv_file_path="data/healthcare_dataset.csv")
+    transfert_csv_mongodb_test_docker(csv_file_path="data/healthcare_dataset.csv")
     
     # Vérifications
     # 1. Le CSV a été lu avec le bon chemin

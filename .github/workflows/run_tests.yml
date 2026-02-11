@@ -38,19 +38,13 @@ jobs:
           pip install pytest
 
       - name: Run unit tests
-        env:
-          DB_NAME: P5_test
         run: |
-          python -m pytest tests/test_transfert_csv_mongodb.py -v
-          python -m pytest tests/test_integrite_donnees.py -v
-          python -m pytest tests/test_optimiser_collection.py -v
+          python -m pytest tests/test_transfert_csv_mongodb_test_docker.py -v
+          python -m pytest tests/test_integrite_donnees_test_docker.py -v
+          python -m pytest tests/test_optimiser_collection_test_docker.py -v
 
       - name: Run integration tests
-        env:
-          MONGO_URI: mongodb://root:example@localhost:27017/
-          DB_NAME: P5_test
-          COLLECTION_NAME: dataset_donnees_medicales
         run: |
-          python scripts/transfert_csv_mongodb.py
-          python scripts/optimiser_collection.py
-          python scripts/test_integrite_donnees.py
+          python scripts/transfert_csv_mongodb_test_docker.py
+          python scripts/optimiser_collection_test_docker.py
+          python scripts/test_integrite_donnees_test_docker.py

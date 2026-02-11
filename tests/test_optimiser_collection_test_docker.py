@@ -1,16 +1,16 @@
 """
-Test unitaire pour optimiser_collection_P5_test
+Test unitaire pour optimiser_collection_test_docker
 À exécuter depuis : P5/ (racine du projet)
-Commande : pytest tests/test_optimiser_collection.py -v
+Commande : pytest tests/test_optimiser_collection_test_docker.py -v
 """
 import pytest
 from unittest.mock import patch, MagicMock, call
-from scripts.local_optimiser_collection_P5_test import optimiser_collection_P5_test
+from scripts.optimiser_collection_test_docker import optimiser_collection_test_docker
 
-@patch('scripts.local_optimiser_collection_P5_test.MongoClient')
-def test_optimiser_collection(mock_mongo_client):
+@patch('scripts.optimiser_collection_test_docker.MongoClient')
+def test_optimiser_collection_test_docker(mock_mongo_client):
     """
-    Test de la fonction optimiser_collection_P5_test.
+    Test de la fonction optimiser_collection_test_docker.
     Vérifie que les index sont correctement créés sur la collection MongoDB.
     """
     # Création des mocks
@@ -28,7 +28,7 @@ def test_optimiser_collection(mock_mongo_client):
     mock_collection.index_information.return_value = {}
     
     # Exécution de la fonction à tester
-    optimiser_collection_P5_test()
+    optimiser_collection_test_docker()
     
     # Vérifications : les 4 index doivent être créés
     mock_collection.create_index.assert_any_call([("Name", 1)])
