@@ -6,50 +6,53 @@ Commande : pytest tests/test_transfert_csv_mongodb_test_docker.py -v
 import pytest
 import pandas as pd
 from unittest.mock import patch, MagicMock
+import os
+# On importe la fonction à tester
 from scripts.transfert_csv_mongodb_test_docker import transfert_csv_mongodb_test_docker
 
 @patch('scripts.transfert_csv_mongodb_test_docker.MongoClient')
 @patch('scripts.transfert_csv_mongodb_test_docker.pd.read_csv')
 def test_transfert_csv(mock_read_csv, mock_mongo_client):
     """
-    Test de la fonction transfert_csv_mongodb_test_docker.
-    Vérifie que les données CSV sont correctement transférées vers MongoDB.
+    Test mis à jour pour correspondre à la logique de production (Docker/CI).
     """
-    # Mock des données CSV
+    # 1. Mock des données CSV
     mock_read_csv.return_value = pd.DataFrame({
         'Name': ['John Doe'], 
         'Age': [30]
     })
     
-    # Configuration de la hiérarchie MongoDB
+    # 2. Configuration du mock MongoDB
     mock_collection = MagicMock()
     mock_db = MagicMock()
     mock_client = MagicMock()
     
-    # Structure : client -> db -> collection
+    # On simule la hiérarchie client -> db -> collection
     mock_client.__getitem__.return_value = mock_db
     mock_db.__getitem__.return_value = mock_collection
     mock_mongo_client.return_value = mock_client
     
-    # Mock du résultat d'insertion
-    mock_result = MagicMock()
-    mock_result.inserted_ids = [1]
-    mock_collection.insert_many.return_value = mock_result
+    # LOGIQUE IMPORTANTE : On simule que la collection est VIDE (0 documents)
+    # pour permettre au script de continuer l'insertion
+    mock_collection.count_documents.return_value = 0
     
-    # Exécution de la fonction
-    transfert_csv_mongodb_test_docker(csv_file_path="data/healthcare_dataset.csv")
+    # 3. Exécution de la fonction
+    # On utilise patch.dict pour simuler les variables d'environnement si nécessaire
+    with patch.dict(os.environ, {"CSV_FILE_PATH": "data/healthcare_dataset.csv", "MONGO_URI": "mongodb://localhost:27017/"}):
+        transfert_csv_mongodb_test_docker()
     
-    # Vérifications
-    # 1. Le CSV a été lu avec le bon chemin
+    # 4. Vérifications (Assertions)
+    
+    # Vérifie que le CSV a été lu (le chemin vient maintenant de l'env var)
     mock_read_csv.assert_called_once_with("data/healthcare_dataset.csv")
     
-    # 2. La collection a été vidée avant l'insertion
-    mock_collection.delete_many.assert_called_once_with({})
+    # Vérifie que le script a bien vérifié si la collection était vide
+    mock_collection.count_documents.assert_called_once_with({})
     
-    # 3. Les données ont été insérées
+    # Vérifie que l'insertion a bien été tentée
     mock_collection.insert_many.assert_called_once()
     
-    # 4. La connexion MongoDB a été fermée
+    # Vérifie la fermeture de la connexion
     mock_client.close.assert_called_once()
 
 if __name__ == "__main__":
