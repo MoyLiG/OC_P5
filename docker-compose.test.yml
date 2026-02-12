@@ -1,0 +1,39 @@
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb_test
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_test_data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  test_runner:
+    image: python:3.11-slim
+    container_name: test_runner
+    volumes:
+      - .:/app
+    working_dir: /app
+    environment:
+      MONGO_URI: "mongodb://root:example@mongodb:27017/"
+      CSV_FILE_PATH: "/app/data/healthcare_dataset.csv"
+    command: >
+      bash -c "pip install --no-cache-dir -r requirements.txt &&
+      pytest tests/ -v &&
+      python scripts/transfert_csv_mongodb_test_docker.py &&
+      python scripts/optimiser_collection_test_docker.py &&
+      python scripts/test_integrite_donnees_test_docker.py"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+volumes:
+  mongodb_test_data:

@@ -1,3 +1,4 @@
+import os
 from pymongo import MongoClient
 from datetime import datetime
 
@@ -6,7 +7,11 @@ def format_name(name):
         return name
     return name.capitalize()
 
-def optimiser_collection_test_docker(mongo_uri="mongodb://root:example@mongodb:27017/", db_name="P5_test_docker", collection_name="dataset_donnees_medicales"):
+def optimiser_collection_test_docker():
+    # Récupération de l'URI via l'environnement
+    mongo_uri = os.getenv("MONGO_URI", "mongodb://root:example@mongodb:27017/")
+    db_name = "P5_test_docker"
+    collection_name = "dataset_donnees_medicales"
     try:
         client = MongoClient(mongo_uri)
         db = client[db_name]

@@ -1,7 +1,13 @@
-from pymongo import MongoClient
+import os
 import pandas as pd
+from pymongo import MongoClient
 
-def tester_integrite_donnees_test_docker(csv_file_path="/data/healthcare_dataset.csv", mongo_uri="mongodb://root:example@mongodb:27017/", db_name="P5_test_docker", collection_name="dataset_donnees_medicales"):
+def tester_integrite_donnees_test_docker():
+    csv_file_path = os.getenv("CSV_FILE_PATH", "/data/healthcare_dataset.csv")
+    mongo_uri = os.getenv("MONGO_URI", "mongodb://root:example@mongodb:27017/")
+    db_name = "P5_test_docker"
+    collection_name = "dataset_donnees_medicales"
+    
     try:
         df_csv = pd.read_csv(csv_file_path)
         client = MongoClient(mongo_uri)
