@@ -39,7 +39,7 @@ jobs:
 
       - name: Run unit tests
         run: |
-          python -m pytest tests/test_transfert_csv_mongodb.py -
+          python -m pytest tests/test_transfert_csv_mongodb.py -v
           python -m pytest tests/test_optimiser_collection.py -v
           python -m pytest tests/test_test_integrite_donnees.py -v          
 
