@@ -45,7 +45,7 @@ jobs:
 
       - name: Run integration tests
         env:
-          # Ici, on remplace 'mongodb' par 'localhost' car le service est mappé sur le runner
+          # On remplace 'mongodb' par 'localhost' car le service est mappé sur le runner
           MONGO_URI: "mongodb://root:example@localhost:27017/"
           # On utilise le chemin relatif car on est à la racine du repo GitHub
           CSV_FILE_PATH: "data/healthcare_dataset.csv"
