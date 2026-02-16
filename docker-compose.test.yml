@@ -1,5 +1,5 @@
 services:
-  mongodb:
+  mongodb_test:
     image: mongo:latest
     container_name: mongodb_test
     restart: unless-stopped
@@ -7,9 +7,11 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
     ports:
-      - "27017:27017"
+      - "27018:27017"    # Utilisation d'un port différent pour éviter les conflits
     volumes:
       - mongodb_test_data:/data/db
+    networks:
+      - test_network
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh mongodb_test:27017/test --quiet
       interval: 10s
@@ -23,17 +25,28 @@ services:
       - .:/app
     working_dir: /app
     environment:
-      MONGO_URI: "mongodb://root:example@mongodb:27017/"
+      ENVIRONMENT: test_docker
+      MONGO_URI: "mongodb://root:example@mongodb_test:27017/"
       CSV_FILE_PATH: "/app/data/healthcare_dataset.csv"
+      DB_NAME: "P5_test"
     command: >
-      bash -c "pip install --no-cache-dir -r requirements.txt &&
-      pytest tests/ -v &&
-      python scripts/transfert_csv_mongodb_test_docker.py &&
-      python scripts/optimiser_collection_test_docker.py &&
-      python scripts/test_integrite_donnees_test_docker.py"
+      bash -c "set -e &&
+      pip install --no-cache-dir -r requirements.txt &&
+      pip install pytest &&
+      python -m pytest tests/test_transfert_csv_mongodb.py -v &&
+      python -m pytest tests/test_optimiser_collection.py -v &&
+      python -m pytest tests/test_test_integrite_donnees.py -v &&      
+      python scripts/transfert_csv_mongodb.py &&
+      python scripts/optimiser_collection.py &&
+      python scripts/test_integrite_donnees.py"
     depends_on:
-      mongodb:
+      mongodb_test:
         condition: service_healthy
-
+    networks:
+      - test_network
 volumes:
   mongodb_test_data:
+
+networks:
+  test_network:
+    driver: bridge
