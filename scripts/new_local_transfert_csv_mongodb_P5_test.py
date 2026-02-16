@@ -1,43 +1,21 @@
 import pandas as pd
 from pymongo import MongoClient
 import os
-from dotenv import load_dotenv
-from pathlib import Path
+from dotenv import load_dotenv  # Pour l'exécution locale
 
-# Détermine l'environnement
-env = os.getenv("ENVIRONMENT", "docker") 
-
-# Charge le fichier .env approprié
-if env == "local":
-    load_dotenv(".env.local")
-elif env == "test":
-    load_dotenv(".env.test")
-elif env == "docker":
-    load_dotenv(".env.docker")
-elif env == "test_docker":
-    load_dotenv(".env.test_docker")
-else:
-    # Charge le fichier par défaut si aucun environnement spécifique
-    load_dotenv()
+load_dotenv()  # Charger les variables d'environnement depuis .env
 
 def transfert_csv_mongodb(csv_file_path=None, mongo_uri=None, db_name=None, collection_name="dataset_donnees_medicales"):
     try:
         # Utilisation des variables d'environnement ou des valeurs par défaut
+        csv_file_path = csv_file_path or os.getenv("CSV_FILE_PATH", "/data/healthcare_dataset.csv")
         mongo_uri = mongo_uri or os.getenv("MONGO_URI", "mongodb://root:example@mongodb:27017/")
         db_name = db_name or os.getenv("DB_NAME", "P5")  # Valeur par défaut pour la production
-        csv_path = csv_file_path or os.getenv("CSV_FILE_PATH", "/data/healthcare_dataset.csv")
 
-        print(f"Exécution en mode {env}")
-        print(f"Base de données: {db_name}")
-        print(f"MongoDB URI: {mongo_uri}")
+        if not os.path.exists(csv_file_path):
+            raise FileNotFoundError(f"Le fichier n'existe pas au chemin : {csv_file_path}")
 
-        # Vérification de l'existence du fichier CSV
-        if not os.path.exists(csv_path):
-            raise FileNotFoundError(f"Le fichier n'existe pas au chemin : {csv_path}")
-
-        print(f"Fichier CSV trouvé: {csv_path}")
-
-        df = pd.read_csv(csv_path)
+        df = pd.read_csv(csv_file_path)
 
         client = MongoClient(mongo_uri)
         db = client[db_name]
