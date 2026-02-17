@@ -1,3 +1,0 @@
-docker volume ls
-docker volume inspect p5_mongodb_data
-
