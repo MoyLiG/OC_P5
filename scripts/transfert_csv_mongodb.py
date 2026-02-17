@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 
 # Détermine l'environnement
-env = os.getenv("ENVIRONMENT", "docker") 
+env = os.getenv("ENVIRONMENT", "local")  # 'local' par défaut
 
 # Charge le fichier .env approprié
 if env == "local":
