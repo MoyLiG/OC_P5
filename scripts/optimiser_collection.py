@@ -1,11 +1,11 @@
-from pymongo import MongoClient
+from pymongo import MongoClient, UpdateOne
 import os
 from datetime import datetime
 from dotenv import load_dotenv
 from pathlib import Path
 
 # Détermine l'environnement
-env = os.getenv("ENVIRONMENT", "docker") 
+env = os.getenv("ENVIRONMENT", "docker")
 
 # Charge le fichier .env approprié
 if env == "local":
@@ -37,7 +37,7 @@ def optimiser_collection(mongo_uri=None, db_name=None, collection_name="dataset_
         # Utilisation des variables d'environnement ou des valeurs par défaut
         mongo_uri = mongo_uri or os.getenv("MONGO_URI", "mongodb://root:example@mongodb:27017/")
         db_name = db_name or os.getenv("DB_NAME", "P5")  # Valeur par défaut pour la production
-       
+
         print(f"Exécution en mode {env}")
         print(f"Base de données: {db_name}")
         print(f"MongoDB URI: {mongo_uri}")
@@ -53,42 +53,64 @@ def optimiser_collection(mongo_uri=None, db_name=None, collection_name="dataset_
         print("Suppression des index existants...")
         collection.drop_indexes()
 
-        # Normalisation des noms et prénoms
+        # Normalisation des noms et prénoms avec bulk_write
         print("Normalisation des noms et prénoms...")
+        name_updates = []
+        for document in collection.find({"Name": {"$exists": True}}):
+            full_name = document["Name"]
+            name_parts = full_name.split()
+            formatted_name_parts = [format_name(part) for part in name_parts]
+            formatted_name = " ".join(formatted_name_parts)
+            name_updates.append(
+                UpdateOne(
+                    {"_id": document["_id"]},
+                    {"$set": {"Name": formatted_name}}
+                )
+            )
 
-        count = 0
-        for document in collection.find():
-            if "Name" in document:
-                full_name = document["Name"]
-                name_parts = full_name.split()
-                formatted_name_parts = [format_name(part) for part in name_parts]
-                formatted_name = " ".join(formatted_name_parts)
-                collection.update_one({"_id": document["_id"]}, {"$set": {"Name": formatted_name}})
-                count += 1
-        print(f"Mise à jour des noms et prénoms terminée. {count} documents mis à jour.")
+        if name_updates:
+            result = collection.bulk_write(name_updates)
+            print(f"Mise à jour des noms et prénoms terminée. {result.modified_count} documents mis à jour.")
 
-        admission_dates_updated = 0
+        # Conversion des dates d'admission avec bulk_write
+        print("Conversion des dates d'admission...")
+        admission_date_updates = []
         for document in collection.find({"Date of Admission": {"$type": "string"}}):
             try:
                 date_str = document["Date of Admission"]
                 date_obj = datetime.strptime(date_str, "%Y-%m-%d")
-                collection.update_one({"_id": document["_id"]}, {"$set": {"Date of Admission": date_obj}})
-                admission_dates_updated += 1
+                admission_date_updates.append(
+                    UpdateOne(
+                        {"_id": document["_id"]},
+                        {"$set": {"Date of Admission": date_obj}}
+                    )
+                )
             except Exception as e:
                 print(f"Erreur lors de la conversion de la date d'admission pour le document {document['_id']}: {e}")
 
-        discharge_dates_updated = 0
+        if admission_date_updates:
+            result = collection.bulk_write(admission_date_updates)
+            print(f"Dates d'admission corrigées : {result.modified_count}")
+
+        # Conversion des dates de sortie avec bulk_write
+        print("Conversion des dates de sortie...")
+        discharge_date_updates = []
         for document in collection.find({"Discharge Date": {"$type": "string"}}):
             try:
                 date_str = document["Discharge Date"]
                 date_obj = datetime.strptime(date_str, "%Y-%m-%d")
-                collection.update_one({"_id": document["_id"]}, {"$set": {"Discharge Date": date_obj}})
-                discharge_dates_updated += 1
+                discharge_date_updates.append(
+                    UpdateOne(
+                        {"_id": document["_id"]},
+                        {"$set": {"Discharge Date": date_obj}}
+                    )
+                )
             except Exception as e:
                 print(f"Erreur lors de la conversion de la date de sortie pour le document {document['_id']}: {e}")
 
-        print(f"Dates d'admission corrigées : {admission_dates_updated}")
-        print(f"Dates de sortie corrigées : {discharge_dates_updated}")
+        if discharge_date_updates:
+            result = collection.bulk_write(discharge_date_updates)
+            print(f"Dates de sortie corrigées : {result.modified_count}")
 
         # Création des index optimisés avec des noms explicites
         print("Création des index...")
