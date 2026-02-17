@@ -1,89 +1,82 @@
 """
-Test unitaire pour tester_integrite_donnees_P5_test
+Test unitaire pour test_integrite_donnees
 À exécuter depuis : P5/ (racine du projet)
 Commande : pytest tests/test_test_integrite_donnees.py -v
 """
 import pytest
 import pandas as pd
 from unittest.mock import patch, MagicMock
-from scripts.local_test_integrite_donnees_P5_test import tester_integrite_donnees_P5_test
+from scripts.test_integrite_donnees import tester_integrite_donnees
 
-@patch('scripts.local_test_integrite_donnees_P5_test.MongoClient')
-@patch('scripts.local_test_integrite_donnees_P5_test.pd.read_csv')
-def test_integrite_donnees(mock_read_csv, mock_mongo_client):
+@patch('scripts.test_integrite_donnees.os.path.exists')
+@patch('scripts.test_integrite_donnees.MongoClient')
+@patch('scripts.test_integrite_donnees.pd.read_csv')
+def test_integrite_donnees(mock_read_csv, mock_mongo_client, mock_path_exists):
     """
-    Test de la fonction tester_integrite_donnees_P5_test.
+    Test de la fonction tester_integrite_donnees.
     Vérifie que la fonction compare correctement les données CSV et MongoDB.
+    Scénario : données CSV et MongoDB identiques → intégrité validée.
     """
-    # Configuration des données mockées
+    # Simule que le fichier CSV existe
+    mock_path_exists.return_value = True
+
+    # Configuration des données mockées (CSV et MongoDB identiques)
     mock_data = {
-        'Name': ['John Doe', 'Jane Smith'], 
-        'Age': [30, 25], 
+        'Name': ['John Doe', 'Jane Smith'],
+        'Age': [30, 25],
         'Gender': ['Male', 'Female']
     }
     mock_read_csv.return_value = pd.DataFrame(mock_data)
-    
+
     # Configuration de la hiérarchie MongoDB
     mock_collection = MagicMock()
     mock_db = MagicMock()
     mock_client = MagicMock()
-    
-    # Structure : client -> db -> collection
+
     mock_client.__getitem__.return_value = mock_db
     mock_db.__getitem__.return_value = mock_collection
     mock_mongo_client.return_value = mock_client
-    
-    # Configuration du retour de la méthode find
-    # Important : doit correspondre aux données CSV pour que le test passe
+
+    # IMPORTANT : _id est exclu car il n'existe pas dans le CSV
+    # La fonction fait pd.DataFrame(list(collection.find()))
+    # donc les clés des dicts deviennent les colonnes de df_mongo
     mock_collection.find.return_value = [
         {'Name': 'John Doe', 'Age': 30, 'Gender': 'Male'},
         {'Name': 'Jane Smith', 'Age': 25, 'Gender': 'Female'}
     ]
-    
-    # Exécution de la fonction
-    # Note : La fonction devrait retourner True/False ou lever une exception
-    # selon que les données sont intègres ou non
-    result = tester_integrite_donnees_P5_test(csv_file_path="data/healthcare_dataset.csv")
-    
+    mock_collection.count_documents.return_value = 2
+
+    # Simule la présence de tous les index requis par la fonction
+    mock_collection.index_information.return_value = {
+        "_id_":                      {"key": [("_id", 1)]},
+        "Name_1":                    {"key": [("Name", 1)]},
+        "Medical_Condition_1":       {"key": [("Medical Condition", 1)]},
+        "Date_of_Admission_1":       {"key": [("Date of Admission", 1)]},
+        "Medical_Condition_1_Age_1": {"key": [("Medical Condition", 1), ("Age", 1)]}
+    }
+
+    # Exécution de la fonction avec la base de test
+    result = tester_integrite_donnees(
+        csv_file_path="data/healthcare_dataset.csv",
+        mongo_uri="mongodb://root:example@mongodb:27017/",
+        db_name="P5_test"
+    )
+
     # Vérifications de base
-    # 1. Le CSV a été lu
+    # 1. Le CSV a été lu avec le bon chemin
     mock_read_csv.assert_called_once_with("data/healthcare_dataset.csv")
-    
+
     # 2. La collection MongoDB a été interrogée
     mock_collection.find.assert_called()
-    
-    # 3. La connexion a été fermée
+
+    # 3. Les index ont été vérifiés
+    mock_collection.index_information.assert_called_once()
+
+    # 4. La connexion a été fermée
     mock_client.close.assert_called_once()
-    
-    # Vérifications d'intégrité (si la fonction ne fait pas déjà ces vérifications)
-    # Ces assertions vérifient que nos mocks sont cohérents
-    csv_df = mock_read_csv.return_value
-    mongo_df = pd.DataFrame(list(mock_collection.find.return_value))
-    
-    # Vérification des colonnes
-    colonnes_csv = set(csv_df.columns)
-    colonnes_mongo = set(mongo_df.columns)
-    assert colonnes_csv == colonnes_mongo, \
-        f"Colonnes différentes: CSV={colonnes_csv}, MongoDB={colonnes_mongo}"
-    
-    # Vérification du nombre de lignes
-    assert len(csv_df) == len(mongo_df), \
-        f"Nombre de lignes différent: CSV={len(csv_df)}, MongoDB={len(mongo_df)}"
-    
-    # Vérification des doublons
-    doublons_csv = csv_df.duplicated().sum()
-    doublons_mongo = mongo_df.duplicated().sum()
-    assert doublons_csv == doublons_mongo, \
-        f"Nombre de doublons différent: CSV={doublons_csv}, MongoDB={doublons_mongo}"
-    
-    # Vérification des valeurs manquantes par colonne
-    valeurs_manquantes_csv = csv_df.isnull().sum()
-    valeurs_manquantes_mongo = mongo_df.isnull().sum()
-    pd.testing.assert_series_equal(
-        valeurs_manquantes_csv, 
-        valeurs_manquantes_mongo,
-        check_names=False
-    )
+
+    # 5. La fonction ne doit pas retourner False (index manquants)
+    assert result is not False, "La fonction ne devrait pas retourner False si les index sont présents"
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

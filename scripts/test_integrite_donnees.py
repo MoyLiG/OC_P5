@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 
 # Détermine l'environnement
-env = os.getenv("ENVIRONMENT", "docker")
+env = os.getenv("ENVIRONMENT", "local")  # 'local' par défaut
 
 # Charge le fichier .env approprié
 if env == "local":
@@ -91,6 +91,7 @@ def tester_integrite_donnees(csv_file_path=None, mongo_uri=None, db_name=None, c
             return False
         else:
             print("Succès : Tous les index requis ont été créés.")
+            return True
             
 
     except Exception as e:
