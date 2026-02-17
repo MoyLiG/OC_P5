@@ -1,4 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
 # Environnement
+venv/
 .env
 .env.*
 !.env.example
+
+# Tests
+.pytest_cache/
+*.sqlite3
+*.db
+
+# Logs et temporaires
+*.log
+*.tmp
+temp/
+tmp/
+
+# IDE
+.idea/
+.vscode/
+
+# Système
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# Fichiers temporaires
+*.swp
+*.swo
