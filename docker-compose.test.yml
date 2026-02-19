@@ -1,0 +1,84 @@
+services:
+  mongodb_test:
+    image: mongo:latest
+    container_name: mongodb_test
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: P5_test
+      # Variables pour init-mongo.js
+      MONGO_ADMIN_PASSWORD: ${MONGO_ADMIN_PASSWORD}
+      MONGO_LECTEUR_PASSWORD: ${MONGO_LECTEUR_PASSWORD}
+      MONGO_REDACTEUR_PASSWORD: ${MONGO_REDACTEUR_PASSWORD}
+      MONGO_ADMIN_TEST_PASSWORD: ${MONGO_ADMIN_TEST_PASSWORD}
+    ports:
+      - "27018:27017"    # Utilisation d'un port différent pour éviter les conflits
+    volumes:
+      - mongodb_test_data:/data/db
+      # Script RBAC (s'exécute au premier démarrage)
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+      # Configuration MongoDB (utilisée à chaque démarrage)
+      - ./mongod.conf:/etc/mongod.conf:ro
+    networks:
+      - test_network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh mongodb_test:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      # Commande pour utiliser mongod.conf
+    command: ["mongod", "--config", "/etc/mongod.conf"]
+
+  test_runner:
+    image: python:3.11-slim
+    container_name: test_runner
+    volumes:
+      - .:/app
+    working_dir: /app
+    environment:
+      ENVIRONMENT: test_docker
+      MONGO_URI: "mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@mongodb_test:27017/"
+      CSV_FILE_PATH: "/app/data/healthcare_dataset.csv"
+      DB_NAME: "P5_test"
+      # Variables pour les tests RBAC
+      MONGO_ADMIN_USER: "admin_p5_test"
+      MONGO_ADMIN_PASSWORD: ${MONGO_ADMIN_TEST_PASSWORD}
+    command: >
+      bash -c "set -e &&
+      echo '=== Installation des dépendances ===' &&
+      pip install --no-cache-dir -r requirements.txt &&
+      pip install pytest &&
+      echo '' &&
+      echo 'En attente de MongoDB...' &&
+      until timeout 1s bash -c 'cat < /dev/null > /dev/tcp/mongodb_test/27017' 2>/dev/null; do
+        sleep 1
+      done &&
+      echo 'MongoDB est prêt !' &&
+      echo '=== Tests unitaires ===' &&
+      python -m pytest tests/test_transfert_csv_mongodb.py -v &&
+      python -m pytest tests/test_optimiser_collection.py -v &&
+      python -m pytest tests/test_test_integrite_donnees.py -v &&
+      python -m pytest tests/test_gestion_utilisateurs.py -v &&
+      echo '' &&
+      echo '=== Tests integration - Gestion de la sécurité ===' &&
+      python scripts/test_rbac_integration.py &&
+      echo '' &&
+      echo '=== Tests integration - Migration des données ===' &&
+      python scripts/transfert_csv_mongodb.py &&
+      python scripts/optimiser_collection.py &&
+      python scripts/test_integrite_donnees.py &&
+      echo '' &&
+      echo 'Tous les tests ont réussi !'"
+    depends_on:
+      mongodb_test:
+        condition: service_healthy
+    networks:
+      - test_network
+
+volumes:
+  mongodb_test_data:
+
+networks:
+  test_network:
+    driver: bridge
