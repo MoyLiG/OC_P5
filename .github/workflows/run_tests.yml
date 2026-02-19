@@ -17,6 +17,9 @@ jobs:
         env:
           MONGO_INITDB_ROOT_USERNAME: root
           MONGO_INITDB_ROOT_PASSWORD: example
+          MONGO_INITDB_DATABASE: P5_test
+        # ⚠️ Les services GitHub Actions ne supportent pas les volumes de fichiers
+        # init-mongo.js sera copié manuellement dans une étape ultérieure
         options: >-
           --health-cmd "mongosh --eval 'db.runCommand({ping: 1})' --quiet"
           --health-interval 10s
@@ -37,13 +40,39 @@ jobs:
           pip install -r requirements.txt
           pip install pytest
 
+      # Initialiser MongoDB RBAC manuellement car on ne peut pas monter de volumes
+      - name: Initialize MongoDB RBAC
+        run: |
+          # Attendre que MongoDB soit prêt
+          sleep 5
+          
+          # Copier le script d'initialisation dans le conteneur
+          docker cp init-mongo.js $(docker ps -qf "ancestor=mongo:latest"):/tmp/init-mongo.js
+          
+          # Exécuter avec authentification root
+          docker exec $(docker ps -qf "ancestor=mongo:latest") mongosh \
+            -u root \
+            -p example \
+            --authenticationDatabase admin \
+            --file /tmp/init-mongo.js
+
       - name: Run unit tests
         run: |
           python -m pytest tests/test_transfert_csv_mongodb.py -v
           python -m pytest tests/test_optimiser_collection.py -v
-          python -m pytest tests/test_test_integrite_donnees.py -v          
+          python -m pytest tests/test_test_integrite_donnees.py -v
+          python -m pytest tests/test_gestion_utilisateurs.py -v 
+          
+      - name: Run integration tests - RBAC Security
+        env:
+          MONGO_URI: "mongodb://root:example@localhost:27017/"
+          DB_NAME: "P5_test"
+          MONGO_ADMIN_USER: "admin_p5_test"
+          MONGO_ADMIN_PASSWORD: "TestAdminPassword123!"
+        run: |
+          python scripts/test_rbac_integration.py
 
-      - name: Run integration tests
+      - name: Run integration tests - Data migration
         env:
           # On remplace 'mongodb' par 'localhost' car le service est mappé sur le runner
           MONGO_URI: "mongodb://root:example@localhost:27017/"

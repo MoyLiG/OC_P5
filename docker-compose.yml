@@ -7,8 +7,12 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
     volumes:
+      # Persistance des données
       - mongodb_data:/data/db
-      - ./data:/data
+      # Script d'initialisation RBAC
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+      # Configuration MongoDB
+      - ./mongod.conf:/etc/mongod.conf:ro
     ports:
       - "27017:27017"
     networks:
@@ -35,6 +39,12 @@ services:
     command: >
       bash -c "set -e &&
       pip install --no-cache-dir -r /requirements.txt &&
+      echo 'Vérification de la connexion...' &&
+      until timeout 1s bash -c 'cat < /dev/null > /dev/tcp/mongodb/27017' 2>/dev/null; do
+        sleep 1
+      done &&
+      echo 'MongoDB est prêt !' &&
+      python -m pytest tests/test_rbac_integration_2.py -k test_connexion_root &&
       python transfert_csv_mongodb.py &&
       python optimiser_collection.py &&
       python test_integrite_donnees.py"
