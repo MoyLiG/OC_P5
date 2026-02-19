@@ -17,6 +17,7 @@ jobs:
         env:
           MONGO_INITDB_ROOT_USERNAME: root
           MONGO_INITDB_ROOT_PASSWORD: example
+          MONGO_INITDB_DATABASE: P5_test
         # ⚠️ Les services GitHub Actions ne supportent pas les volumes de fichiers
         # init-mongo.js sera copié manuellement dans une étape ultérieure
         options: >-
@@ -39,15 +40,21 @@ jobs:
           pip install -r requirements.txt
           pip install pytest
 
-     # Initialiser MongoDB RBAC manuellement car on ne peut pas monter de volumes
+      # Initialiser MongoDB RBAC manuellement car on ne peut pas monter de volumes
       - name: Initialize MongoDB RBAC
         run: |
           # Attendre que MongoDB soit prêt
           sleep 5
           
-          # Copier et exécuter le script d'initialisation
+          # Copier le script d'initialisation dans le conteneur
           docker cp init-mongo.js $(docker ps -qf "ancestor=mongo:latest"):/tmp/init-mongo.js
-          docker exec $(docker ps -qf "ancestor=mongo:latest") mongosh --file /tmp/init-mongo.js      
+          
+          # Exécuter avec authentification root
+          docker exec $(docker ps -qf "ancestor=mongo:latest") mongosh \
+            -u root \
+            -p example \
+            --authenticationDatabase admin \
+            --file /tmp/init-mongo.js
 
       - name: Run unit tests
         run: |
@@ -63,7 +70,7 @@ jobs:
           MONGO_ADMIN_USER: "admin_p5_test"
           MONGO_ADMIN_PASSWORD: "TestAdminPassword123!"
         run: |
-          python -m pytest tests/test_rbac_integration.py
+          python scripts/test_rbac_integration.py
 
       - name: Run integration tests - Data migration
         env:
@@ -76,6 +83,3 @@ jobs:
           python scripts/transfert_csv_mongodb.py
           python scripts/optimiser_collection.py
           python scripts/test_integrite_donnees.py
-
-      
-
