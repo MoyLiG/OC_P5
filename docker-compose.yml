@@ -44,7 +44,7 @@ services:
         sleep 1
       done &&
       echo 'MongoDB est prêt !' &&
-      python scripts/test_rbac_integration.py -k test_connexion_root &&
+      python scripts/test_rbac_integration.py &&
       python scripts/transfert_csv_mongodb.py &&
       python scripts/optimiser_collection.py &&
       python scripts/test_integrite_donnees.py"
