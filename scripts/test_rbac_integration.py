@@ -7,6 +7,7 @@ from pymongo.errors import ConnectionFailure
 # Ajout du chemin pour les imports si nécessaire
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+
 from scripts.gestion_utilisateurs import (
     creer_utilisateur,
     authentifier_utilisateur
