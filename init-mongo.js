@@ -7,6 +7,22 @@ db = db.getSiblingDB('admin');
 
 print('=== Initialisation MongoDB RBAC ===');
 
+// Lecture des mots de passe depuis les variables d'environnement
+var adminPassword      = process.env.MONGO_ADMIN_PASSWORD;
+var lecteurPassword    = process.env.MONGO_LECTEUR_PASSWORD;
+var redacteurPassword  = process.env.MONGO_REDACTEUR_PASSWORD;
+var adminTestPassword  = process.env.MONGO_ADMIN_TEST_PASSWORD;
+
+// Vérification que les variables sont bien définies
+if (!adminPassword || !lecteurPassword || !redacteurPassword || !adminTestPassword) {
+    print('❌ ERREUR : Une ou plusieurs variables d\'environnement sont manquantes :');
+    print('   - MONGO_ADMIN_PASSWORD');
+    print('   - MONGO_LECTEUR_PASSWORD');
+    print('   - MONGO_REDACTEUR_PASSWORD');
+    print('   - MONGO_ADMIN_TEST_PASSWORD');
+    quit(1);
+}
+
 // 1. Création de la base de données principale
 db = db.getSiblingDB('P5');
 print('✓ Base de données P5 créée');
@@ -57,7 +73,7 @@ print('✓ Rôle adminP5 créé');
 // Utilisateur admin de la base P5
 db.createUser({
     user: "admin_p5",
-    pwd: "SecureAdminPassword123!",
+    pwd: adminPassword,
     roles: [
         { role: "adminP5", db: "P5" }
     ]
@@ -67,7 +83,7 @@ print('✓ Utilisateur admin_p5 créé');
 // Utilisateur lecture seule
 db.createUser({
     user: "lecteur_p5",
-    pwd: "SecureLecteurPassword123!",
+    pwd: lecteurPassword,
     roles: [
         { role: "lecteurMedical", db: "P5" }
     ]
@@ -77,7 +93,7 @@ print('✓ Utilisateur lecteur_p5 créé');
 // Utilisateur avec droits d'écriture
 db.createUser({
     user: "redacteur_p5",
-    pwd: "SecureRedacteurPassword123!",
+    pwd: redacteurPassword,
     roles: [
         { role: "redacteurMedical", db: "P5" }
     ]
@@ -125,7 +141,7 @@ db.createRole({
 // Utilisateurs pour P5_test
 db.createUser({
     user: "admin_p5_test",
-    pwd: "TestAdminPassword123!",
+    pwd: adminTestPassword,
     roles: [
         { role: "adminP5", db: "P5_test" }
     ]
@@ -143,4 +159,3 @@ print('  - lecteur_p5 (lecteurMedical) : lecture seule');
 print('  - redacteur_p5 (redacteurMedical) : lecture + écriture');
 print('\nTest (P5_test):');
 print('  - admin_p5_test (adminP5) : admin complet');
-print('\n⚠️  IMPORTANT: Changez ces mots de passe en production !');
