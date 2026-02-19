@@ -6,9 +6,8 @@ from pymongo import MongoClient
 import bcrypt
 import os
 from dotenv import load_dotenv
-from datetime import datetime
-import re
 from datetime import datetime, timezone
+import re
 
 # Détermine l'environnement
 env = os.getenv("ENVIRONMENT", "local")
@@ -75,15 +74,13 @@ def hasher_mot_de_passe(password):
     """
     salt = bcrypt.gensalt(rounds=12)
     hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
-    return hashed.decode('utf-8')  # Stocké en string dans MongoDB
+    return hashed.decode('utf-8')
 
 def verifier_mot_de_passe(password, hashed_password):
     """
     Vérifie qu'un mot de passe correspond à son hash
     """
     return bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))
-
-# ... (garder les imports et ROLES identiques)
 
 def creer_utilisateur(username, password, role, email=None, db=None, mongo_uri=None, db_name=None):
     """
@@ -114,7 +111,8 @@ def creer_utilisateur(username, password, role, email=None, db=None, mongo_uri=N
         # 4. Vérification existence
         if users_collection.find_one({"username": username}):
             print(f"❌ L'utilisateur '{username}' existe déjà")
-            if _client: _client.close()
+            if _client:
+                _client.close()
             return False
         
         # 5. Création
@@ -131,40 +129,12 @@ def creer_utilisateur(username, password, role, email=None, db=None, mongo_uri=N
         users_collection.insert_one(user_doc)
         users_collection.create_index("username", unique=True)
         
-        print(f"✅ Utilisateur '{username}' créé.")
-        if _client: _client.close()
-        return True
-        
-    except Exception as e:
-        print(f"❌ Erreur : {e}")
-        return False
-        
-        # Hash du mot de passe
-        hashed_password = hasher_mot_de_passe(password)
-        
-        # Création du document utilisateur
-        user_doc = {
-            "username": username,
-            "password_hash": hashed_password,
-            "role": role,
-            "permissions": ROLES[role]["permissions"],
-            "email": email,
-            "created_at": datetime.utcnow(),
-            "last_login": None,
-            "active": True
-        }
-        
-        # Insertion dans MongoDB
-        result = users_collection.insert_one(user_doc)
-        
-        # Création d'index unique sur username
-        users_collection.create_index("username", unique=True)
-        
         print(f"✅ Utilisateur '{username}' créé avec succès")
         print(f"   Rôle: {role} ({ROLES[role]['description']})")
         print(f"   Permissions: {', '.join(ROLES[role]['permissions'])}")
         
-        client.close()
+        if _client:
+            _client.close()
         return True
         
     except Exception as e:
@@ -174,15 +144,6 @@ def creer_utilisateur(username, password, role, email=None, db=None, mongo_uri=N
 def authentifier_utilisateur(username, password, mongo_uri=None, db_name=None):
     """
     Authentifie un utilisateur
-    
-    Args:
-        username (str): Nom d'utilisateur
-        password (str): Mot de passe en clair
-        mongo_uri (str): URI MongoDB
-        db_name (str): Nom de la base de données
-    
-    Returns:
-        dict or None: Document utilisateur si authentification réussie, None sinon
     """
     try:
         mongo_uri = mongo_uri or os.getenv("MONGO_URI", "mongodb://root:example@localhost:27017/")
@@ -192,7 +153,6 @@ def authentifier_utilisateur(username, password, mongo_uri=None, db_name=None):
         db = client[db_name]
         users_collection = db["users"]
         
-        # Récupérer l'utilisateur
         user = users_collection.find_one({"username": username})
         
         if not user:
@@ -205,9 +165,7 @@ def authentifier_utilisateur(username, password, mongo_uri=None, db_name=None):
             client.close()
             return None
         
-        # Vérification du mot de passe
         if verifier_mot_de_passe(password, user["password_hash"]):
-            # Mise à jour de la date de dernière connexion
             users_collection.update_one(
                 {"_id": user["_id"]},
                 {"$set": {"last_login": datetime.now(timezone.utc)}}
@@ -216,7 +174,6 @@ def authentifier_utilisateur(username, password, mongo_uri=None, db_name=None):
             print(f"✅ Authentification réussie pour '{username}'")
             client.close()
             
-            # Retourne l'utilisateur sans le hash du mot de passe
             user.pop("password_hash", None)
             return user
         else:
@@ -244,6 +201,7 @@ def lister_utilisateurs(mongo_uri=None, db_name=None):
         
         if not users:
             print("Aucun utilisateur trouvé")
+            client.close()
             return []
         
         print(f"\n📋 Liste des utilisateurs ({len(users)}):")
@@ -277,7 +235,7 @@ def supprimer_utilisateur(username, mongo_uri=None, db_name=None):
         
         result = users_collection.update_one(
             {"username": username},
-            {"$set": {"active": False, "deactivated_at": datetime.utcnow()}}
+            {"$set": {"active": False, "deactivated_at": datetime.now(timezone.utc)}}
         )
         
         if result.modified_count > 0:
@@ -296,10 +254,8 @@ def supprimer_utilisateur(username, mongo_uri=None, db_name=None):
 if __name__ == "__main__":
     print("=== Gestion des utilisateurs applicatifs ===\n")
     
-    # Exemple d'utilisation
     print("Création d'utilisateurs de test...")
     
-    # Admin
     creer_utilisateur(
         username="admin",
         password="Admin123!@#Secure",
@@ -307,7 +263,6 @@ if __name__ == "__main__":
         email="admin@hospital.fr"
     )
     
-    # Médecin
     creer_utilisateur(
         username="dr.martin",
         password="Doctor456!@#Safe",
@@ -315,7 +270,6 @@ if __name__ == "__main__":
         email="dr.martin@hospital.fr"
     )
     
-    # Lecteur
     creer_utilisateur(
         username="lecteur_test",
         password="Read789!@#Only",
@@ -324,13 +278,9 @@ if __name__ == "__main__":
     )
     
     print("\n" + "="*80 + "\n")
-    
-    # Liste les utilisateurs
     lister_utilisateurs()
-    
     print("\n" + "="*80 + "\n")
     
-    # Test d'authentification
     print("Test d'authentification...")
     authentifier_utilisateur("admin", "Admin123!@#Secure")
     authentifier_utilisateur("admin", "mauvais_mot_de_passe")
