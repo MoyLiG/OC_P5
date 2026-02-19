@@ -70,7 +70,7 @@ jobs:
           MONGO_ADMIN_USER: "admin_p5_test"
           MONGO_ADMIN_PASSWORD: "TestAdminPassword123!"
         run: |
-          python -m pytest tests/test_rbac_integration.py
+          python scripts/test_rbac_integration.py
 
       - name: Run integration tests - Data migration
         env:

@@ -44,10 +44,10 @@ services:
         sleep 1
       done &&
       echo 'MongoDB est prêt !' &&
-      python -m pytest tests/test_rbac_integration_2.py -k test_connexion_root &&
-      python transfert_csv_mongodb.py &&
-      python optimiser_collection.py &&
-      python test_integrite_donnees.py"
+      python scripts/test_rbac_integration.py -k test_connexion_root &&
+      python scripts/transfert_csv_mongodb.py &&
+      python scripts/optimiser_collection.py &&
+      python scripts/test_integrite_donnees.py"
       
     depends_on:
       mongodb:
