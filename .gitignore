@@ -8,6 +8,7 @@ venv/
 .env
 .env.*
 !.env.example
+*.secure
 
 # Tests
 .pytest_cache/
