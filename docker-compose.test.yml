@@ -57,7 +57,7 @@ services:
       python -m pytest tests/test_gestion_utilisateurs.py -v &&
       echo '' &&
       echo '=== Tests d'intégration - Gestion de la sécurité ===' &&
-      python -m pytest tests/test_rbac_integration.py &&
+      python scripts/test_rbac_integration.py &&
       echo '' &&
       echo '=== Tests d'intégration - Migration des données ===' &&
       python scripts/transfert_csv_mongodb.py &&
