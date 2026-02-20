@@ -250,24 +250,3 @@ def supprimer_utilisateur(username, mongo_uri=None, db_name=None):
     except Exception as e:
         print(f"❌ Erreur lors de la suppression : {e}")
         return False
-
-if __name__ == "__main__":
-    print("=== Gestion des utilisateurs applicatifs ===\n")
-    print("ℹ️  Pour créer un utilisateur, utilisez les variables d'environnement :")
-    print("   TEST_USERNAME, TEST_PASSWORD, TEST_ROLE, TEST_EMAIL\n")
-
-    username = os.getenv("TEST_USERNAME")
-    password = os.getenv("TEST_PASSWORD")
-    role     = os.getenv("TEST_ROLE", "lecteur")
-    email    = os.getenv("TEST_EMAIL")
-
-    if not username or not password:
-        print("❌ Variables TEST_USERNAME et TEST_PASSWORD requises.")
-        print("   Exemple : TEST_USERNAME=admin TEST_PASSWORD=MonMdp123! python scripts/gestion_utilisateurs.py")
-    else:
-        creer_utilisateur(username=username, password=password, role=role, email=email)
-        print("\n" + "=" * 80 + "\n")
-        lister_utilisateurs()
-        print("\n" + "=" * 80 + "\n")
-        print("Test d'authentification...")
-        authentifier_utilisateur(username, password)
