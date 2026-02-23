@@ -39,25 +39,25 @@ Ce projet assure la migration d'un dataset de données médicales (format CSV) v
 OC_P5/
 ├── .github/
 │   └── workflows/
-│       └── run_tests.yml        # Pipeline CI/CD GitHub Actions
+│       └── run_tests.yml              # Pipeline CI/CD GitHub Actions
 ├── data/
-│   └── healthcare_dataset.csv   # Dataset source
+│   └── healthcare_dataset.csv         # Dataset source
 ├── scripts/
-│   ├── transfert_csv_mongodb.py # Migration CSV → MongoDB
-│   ├── optimiser_collection.py  # Normalisation + index
-│   ├── test_integrite_donnees.py# Vérification intégrité
-│   └── gestion_utilisateurs.py  # Gestion RBAC applicatif
+│   ├── transfert_csv_mongodb.py       # Migration CSV → MongoDB
+│   ├── optimiser_collection.py        # Normalisation + index
+│   ├── test_integrite_donnees.py      # Vérification intégrité
+│   ├── gestion_utilisateurs.py        # Gestion RBAC applicatif
+│   └── test_rbac_integration.py       # Tests intégration RBAC
 ├── tests/
 │   ├── test_transfert_csv_mongodb.py
 │   ├── test_optimiser_collection.py
 │   ├── test_test_integrite_donnees.py
-│   ├── test_gestion_utilisateurs.py
-│   └── test_rbac_integration.py
-├── init-mongo.js                # Initialisation RBAC MongoDB
-├── docker-compose.yml           # Déploiement production
-├── docker-compose.test.yml      # Environnement de test Docker
-├── mongod.conf                  # Configuration MongoDB
-├── .env.example                 # Template des variables d'environnement
+│   └── test_gestion_utilisateurs.py
+├── init-mongo.js                      # Initialisation RBAC MongoDB
+├── docker-compose.yml                 # Déploiement production
+├── docker-compose.test.yml            # Environnement de test Docker
+├── mongod.conf                        # Configuration MongoDB
+├── .env.example                       # Template des variables d'environnement
 └── requirements.txt
 ```
 
