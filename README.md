@@ -387,7 +387,6 @@ docker compose up --build
    ↓
 2. Service migration
    • Installation dépendances
-   • Vérification RBAC (pytest tests/test_rbac_integration.py)
    • Migration données (55 500 documents)
    • Optimisation (5 index)
    • Validation intégrité
