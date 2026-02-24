@@ -1,6 +1,6 @@
 """
 Gestion des utilisateurs applicatifs avec hashage sécurisé des mots de passe
-Utilise bcrypt pour le hashing (résistant aux attaques GPU)
+Utilisation de bcrypt pour le hashing (résistant aux attaques GPU)
 """
 from pymongo import MongoClient
 import bcrypt
@@ -15,14 +15,12 @@ env = os.getenv("ENVIRONMENT", "local")
 # Charge le fichier .env approprié
 if env == "local":
     load_dotenv(".env.local")
-elif env == "test":
-    load_dotenv(".env.test")
 elif env == "docker":
     load_dotenv(".env.docker")
 elif env == "test_docker":
     load_dotenv(".env.test_docker")
 else:
-    load_dotenv()
+    load_dotenv()  # Fichier .env par défaut
 
 # Rôles applicatifs disponibles
 ROLES = {
@@ -102,7 +100,7 @@ def creer_utilisateur(username, password, role, email=None, db=None, mongo_uri=N
         _client = None
         if db is None:
             mongo_uri = mongo_uri or os.getenv("MONGO_URI", "mongodb://root:example@localhost:27017/")
-            db_name = db_name or os.getenv("DB_NAME", "P5")
+            db_name = db_name or os.getenv("DB_NAME", "P5_test")  # Défaut sécurisé : base de test
             _client = MongoClient(mongo_uri)
             db = _client[db_name]
         
@@ -147,7 +145,7 @@ def authentifier_utilisateur(username, password, mongo_uri=None, db_name=None):
     """
     try:
         mongo_uri = mongo_uri or os.getenv("MONGO_URI", "mongodb://root:example@localhost:27017/")
-        db_name = db_name or os.getenv("DB_NAME", "P5")
+        db_name = db_name or os.getenv("DB_NAME", "P5_test")  # Défaut sécurisé : base de test
         
         client = MongoClient(mongo_uri)
         db = client[db_name]
@@ -191,7 +189,7 @@ def lister_utilisateurs(mongo_uri=None, db_name=None):
     """
     try:
         mongo_uri = mongo_uri or os.getenv("MONGO_URI", "mongodb://root:example@localhost:27017/")
-        db_name = db_name or os.getenv("DB_NAME", "P5")
+        db_name = db_name or os.getenv("DB_NAME", "P5_test")  # Défaut sécurisé : base de test
         
         client = MongoClient(mongo_uri)
         db = client[db_name]
@@ -227,7 +225,7 @@ def supprimer_utilisateur(username, mongo_uri=None, db_name=None):
     """
     try:
         mongo_uri = mongo_uri or os.getenv("MONGO_URI", "mongodb://root:example@localhost:27017/")
-        db_name = db_name or os.getenv("DB_NAME", "P5")
+        db_name = db_name or os.getenv("DB_NAME", "P5_test")  # Défaut sécurisé : base de test
         
         client = MongoClient(mongo_uri)
         db = client[db_name]

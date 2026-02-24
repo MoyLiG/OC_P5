@@ -2,7 +2,6 @@ from pymongo import MongoClient
 import pandas as pd
 import os
 from dotenv import load_dotenv
-from pathlib import Path
 
 # Détermine l'environnement
 env = os.getenv("ENVIRONMENT", "local")  # 'local' par défaut
@@ -10,18 +9,14 @@ env = os.getenv("ENVIRONMENT", "local")  # 'local' par défaut
 # Charge le fichier .env approprié
 if env == "local":
     load_dotenv(".env.local")
-elif env == "test":
-    load_dotenv(".env.test")
 elif env == "docker":
     load_dotenv(".env.docker")
 elif env == "test_docker":
     load_dotenv(".env.test_docker")
 else:
-    # Charge le fichier par défaut si aucun environnement spécifique
-    load_dotenv()
+    load_dotenv()  # Fichier .env par défaut
 
 def tester_integrite_donnees(csv_file_path=None, mongo_uri=None, db_name=None, collection_name="dataset_donnees_medicales"):
-
     """
     Teste l'intégrité des données entre un fichier CSV et une collection MongoDB.
     Args:
@@ -32,9 +27,9 @@ def tester_integrite_donnees(csv_file_path=None, mongo_uri=None, db_name=None, c
     """
     try:
         # Utilisation des variables d'environnement ou des valeurs par défaut
-        mongo_uri = mongo_uri or os.getenv("MONGO_URI", "mongodb://root:example@mongodb:27017/")
-        db_name = db_name or os.getenv("DB_NAME", "P5")  # Valeur par défaut pour la production
-        csv_path = csv_file_path or os.getenv("CSV_FILE_PATH", "/data/healthcare_dataset.csv")
+        mongo_uri = mongo_uri or os.getenv("MONGO_URI", "mongodb://root:example@localhost:27017/")
+        db_name = db_name or os.getenv("DB_NAME", "P5_test")  # Défaut sécurisé : base de test
+        csv_path = csv_file_path or os.getenv("CSV_FILE_PATH", "./data/healthcare_dataset.csv")
 
         print(f"Exécution en mode {env}")
         print(f"Base de données: {db_name}")
@@ -92,7 +87,6 @@ def tester_integrite_donnees(csv_file_path=None, mongo_uri=None, db_name=None, c
         else:
             print("Succès : Tous les index requis ont été créés.")
             return True
-            
 
     except Exception as e:
         print(f"Une erreur est survenue : {e}")

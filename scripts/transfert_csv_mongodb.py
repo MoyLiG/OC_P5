@@ -2,7 +2,6 @@ import pandas as pd
 from pymongo import MongoClient
 import os
 from dotenv import load_dotenv
-from pathlib import Path
 
 # Détermine l'environnement
 env = os.getenv("ENVIRONMENT", "local")  # 'local' par défaut
@@ -10,22 +9,19 @@ env = os.getenv("ENVIRONMENT", "local")  # 'local' par défaut
 # Charge le fichier .env approprié
 if env == "local":
     load_dotenv(".env.local")
-elif env == "test":
-    load_dotenv(".env.test")
 elif env == "docker":
     load_dotenv(".env.docker")
 elif env == "test_docker":
     load_dotenv(".env.test_docker")
 else:
-    # Charge le fichier par défaut si aucun environnement spécifique
-    load_dotenv()
+    load_dotenv()  # Fichier .env par défaut
 
 def transfert_csv_mongodb(csv_file_path=None, mongo_uri=None, db_name=None, collection_name="dataset_donnees_medicales"):
     try:
         # Utilisation des variables d'environnement ou des valeurs par défaut
-        mongo_uri = mongo_uri or os.getenv("MONGO_URI", "mongodb://root:example@mongodb:27017/")
-        db_name = db_name or os.getenv("DB_NAME", "P5")  # Valeur par défaut pour la production
-        csv_path = csv_file_path or os.getenv("CSV_FILE_PATH", "/data/healthcare_dataset.csv")
+        mongo_uri = mongo_uri or os.getenv("MONGO_URI", "mongodb://root:example@localhost:27017/")
+        db_name = db_name or os.getenv("DB_NAME", "P5_test")  # Défaut sécurisé : base de test
+        csv_path = csv_file_path or os.getenv("CSV_FILE_PATH", "./data/healthcare_dataset.csv")
 
         print(f"Exécution en mode {env}")
         print(f"Base de données: {db_name}")
@@ -48,10 +44,10 @@ def transfert_csv_mongodb(csv_file_path=None, mongo_uri=None, db_name=None, coll
         if is_test_env:
             print(f"Environnement de test détecté. Nettoyage de la base '{db_name}'...")
             # Suppression de toutes les collections sauf 'system.*' (systèmes)
-            for collection_name in db.list_collection_names():
-                if not collection_name.startswith('system.'):
-                    db[collection_name].delete_many({})
-                    print(f"Collection '{collection_name}' vidée.")
+            for collection_name_to_clean in db.list_collection_names():
+                if not collection_name_to_clean.startswith('system.'):
+                    db[collection_name_to_clean].delete_many({})
+                    print(f"Collection '{collection_name_to_clean}' vidée.")
         elif collection.count_documents({}) > 0:
             print(f"La collection '{collection_name}' contient déjà des données. Annulation de l'insertion pour éviter les doublons.")
             return
