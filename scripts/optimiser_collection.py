@@ -2,7 +2,6 @@ from pymongo import MongoClient, UpdateOne
 import os
 from datetime import datetime
 from dotenv import load_dotenv
-from pathlib import Path
 
 # Détermine l'environnement
 env = os.getenv("ENVIRONMENT", "local")  # 'local' par défaut
@@ -10,15 +9,12 @@ env = os.getenv("ENVIRONMENT", "local")  # 'local' par défaut
 # Charge le fichier .env approprié
 if env == "local":
     load_dotenv(".env.local")
-elif env == "test":
-    load_dotenv(".env.test")
 elif env == "docker":
     load_dotenv(".env.docker")
 elif env == "test_docker":
     load_dotenv(".env.test_docker")
 else:
-    # Charge le fichier par défaut si aucun environnement spécifique
-    load_dotenv()
+    load_dotenv()  # Fichier .env par défaut
 
 def format_name(name):
     if not isinstance(name, str):
@@ -35,8 +31,8 @@ def optimiser_collection(mongo_uri=None, db_name=None, collection_name="dataset_
     """
     try:
         # Utilisation des variables d'environnement ou des valeurs par défaut
-        mongo_uri = mongo_uri or os.getenv("MONGO_URI", "mongodb://root:example@mongodb:27017/")
-        db_name = db_name or os.getenv("DB_NAME", "P5")  # Valeur par défaut pour la production
+        mongo_uri = mongo_uri or os.getenv("MONGO_URI", "mongodb://root:example@localhost:27017/")
+        db_name = db_name or os.getenv("DB_NAME", "P5_test")  # Défaut sécurisé : base de test
 
         print(f"Exécution en mode {env}")
         print(f"Base de données: {db_name}")
