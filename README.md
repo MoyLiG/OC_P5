@@ -594,42 +594,6 @@ pytest tests/test_rbac_integration.py -v
 
 ---
 
-## 🎓 Points clés pour la soutenance
-
-### Architecture
-
-- ✅ **Séparation des préoccupations** : scripts/ vs tests/
-- ✅ **Environnements isolés** : local, test, production
-- ✅ **Conteneurisation** : Docker pour portabilité et scalabilité
-
-### Sécurité
-
-- ✅ **Double RBAC** : MongoDB (infra) + Application (métier)
-- ✅ **Bcrypt 12 rounds** : Résistant aux attaques GPU
-- ✅ **Validation stricte** : Mots de passe robustes
-- ✅ **Principe du moindre privilège** : Chaque compte a les permissions minimales
-
-### Qualité
-
-- ✅ **28 tests automatisés** : Unitaires + Intégration
-- ✅ **CI/CD** : GitHub Actions sur chaque push
-- ✅ **Validation intégrité** : CSV ↔ MongoDB
-- ✅ **Code propre** : Gestion d'erreurs, logging, documentation
-
-### Performance
-
-- ✅ **5 index MongoDB** : Requêtes 100x plus rapides
-- ✅ **Bulk operations** : Optimisation des écritures
-- ✅ **Normalisation** : Dates en format natif MongoDB
-
-### DevOps
-
-- ✅ **Docker multi-environnements** : test vs production
-- ✅ **Healthchecks** : Validation disponibilité services
-- ✅ **Volumes persistants** : Pas de perte de données
-- ✅ **Secrets management** : GitHub Secrets + .env
-
----
 
 ## 📝 Licence
 
